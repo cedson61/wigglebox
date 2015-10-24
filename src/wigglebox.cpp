@@ -56,8 +56,8 @@ WiggleBox::~WiggleBox()
 /*************/
 void WiggleBox::run()
 {
-    float wiggleFactor = _state.wiggleRange;
-    float wiggleStep = 0.f;
+    vector<cv::Mat> wiggledFrames;
+    int wiggleIndex = 0;
 
     while(_state.run)
     {
@@ -72,23 +72,42 @@ void WiggleBox::run()
 
             if (rgbFrame.rows > 0 && rgbFrame.cols > 0 && depthMap.cols > 0 && depthMap.rows > 0)
             {
-                //cv::imshow("image", rgbFrame);
-                //cv::imshow("depth", depthMap);
+                if (!_state.grabWiggle)
+                {
+                    cv::imshow("image", rgbFrame);
+                    cv::imshow("depth", depthMap);
 
-                _wiggler->setInputs(rgbFrame, depthMap);            
+                    if (wiggledFrames.size() != 0)
+                    {
+                        cv::imshow("wiggle", wiggledFrames[wiggleIndex]);
+                        wiggleIndex = (wiggleIndex + 1) % wiggledFrames.size();
+                    }
+                }
+                else
+                {
+                    _wiggler->setInputs(rgbFrame, depthMap);            
 
+                    wiggledFrames.clear();
+                    float wiggleFactor = -_state.wiggleRange;
+                    float wiggleStep = _state.wiggleStep;
+                    int steps = (_state.wiggleRange / _state.wiggleStep) * 4 + 1;
 
-                if (wiggleFactor >= _state.wiggleRange)
-                    wiggleStep = -1.f * _state.wiggleStep;
-                else if (wiggleFactor <= -_state.wiggleRange)
-                    wiggleStep = _state.wiggleStep;
-                wiggleFactor += wiggleStep;
+                    for (auto i = 0; i < steps; ++i)
+                    {
+                        if (wiggleFactor >= _state.wiggleRange)
+                            wiggleStep = -1.f * _state.wiggleStep;
+                        else if (wiggleFactor <= -_state.wiggleRange)
+                            wiggleStep = _state.wiggleStep;
+                        wiggleFactor += wiggleStep;
 
-                _wiggler->setWiggleFactor(wiggleFactor);
-                _wiggler->setWiggleDist(48.f * 32.f);
+                        _wiggler->setWiggleFactor(wiggleFactor);
+                        _wiggler->setWiggleDist(48.f * 32.f);
 
-                auto wiggledFrame = _wiggler->doWiggle();
-                cv::imshow("wiggled", wiggledFrame);
+                        auto wiggledFrame = _wiggler->doWiggle();
+                        wiggledFrames.push_back(wiggledFrame);
+                    }
+                    _state.grabWiggle = false;
+                }
             }
         }
 
@@ -114,6 +133,9 @@ void WiggleBox::processKeyEvent(short key)
         break;
     case 27: // Escape
         _state.run = false;
+        break;
+    case 32: // Space
+        _state.grabWiggle = true;
         break;
     }
 }

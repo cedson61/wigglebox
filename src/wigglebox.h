@@ -42,6 +42,7 @@ class WiggleBox
         struct State
         {
             bool run {true};
+            bool grabWiggle {false};
             float wiggleRange {0.004f};
             float wiggleStep {0.001f};
         } _state;

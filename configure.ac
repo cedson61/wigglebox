@@ -23,7 +23,7 @@ export PKG_CONFIG_PATH=$srcdir/pkgconfig:/usr/local/lib/pkgconfig:/usr/lib/pkgco
 AC_HEADER_STDC
 
 # OpenCV, for their hardware support
-PKG_CHECK_MODULES([OPENCV], [opencv >= 2.4],
+PKG_CHECK_MODULES([OPENCV], [opencv >= 3.0],
     AC_DEFINE([HAVE_OPENCV], [1], [Defined to 1 if OpenCV is detected]),
     AC_DEFINE([HAVE_OPENCV], [0], [Defined to 1 if OpenCV is detected]))
 AM_CONDITIONAL(HAVE_OPENCV, test -n "$OPENCV_LIBS")
