@@ -119,7 +119,6 @@ class RgbdCamera
         bool isReady() const;
         cv::Mat retrieveRGB() {return _rgbMap.clone();}
         cv::Mat retrieveDisparity() {return _depthMap.clone();}
-        cv::Mat retrieveDepthMask() {return _depthMask.clone();}
         void saveToDisk();
 
         void activateCalibration() {_activateCalibration = !_activateCalibration;}

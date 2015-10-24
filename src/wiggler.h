@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2015 Emmanuel Durand
  *
- * This file is part of WiggleBox.
+ * This file is part of Wiggler.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +14,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with WiggleBox.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Wiggler.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 #include <chrono>
@@ -26,27 +26,23 @@
 
 #include <opencv2/opencv.hpp>
 
-#include "./rgbdCamera.h"
-#include "./wiggler.h"
-
 /*************/
-class WiggleBox
+class Wiggler
 {
     public:
-        WiggleBox(int argc, char** argv);
-        ~WiggleBox();
+        Wiggler();
+        ~Wiggler();
 
-        void run();
+        void setWiggleDist(float value) {_wiggleDist = std::max(0.f, value);}
+        void setWiggleFactor(float value) {_wiggleFactor = value;}
+        
+        bool setInputs(cv::Mat rgb, cv::Mat depth);
+        cv::Mat doWiggle();
 
     private:
-        struct State
-        {
-            bool run {true};
-        } _state;
+        cv::Mat _rgb;
+        cv::Mat _depth;
 
-        std::unique_ptr<RgbdCamera> _camera;
-        std::unique_ptr<Wiggler> _wiggler;
-
-        void parseArguments(int argc, char** argv);
-        void processKeyEvent(short key);
+        float _wiggleDist {0.f};
+        float _wiggleFactor {0.f};
 };

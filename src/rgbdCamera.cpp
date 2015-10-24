@@ -49,15 +49,7 @@ bool RgbdCamera::grab()
             _depthMask = cv::Mat(_depthMap.size(), CV_8U);
 
         _depthMap.convertTo(_depthMask, CV_8U, 1.0 / 32.0);
-        cv::Mat unknownMask;
-        cv::threshold(_depthMask, unknownMask, 1, 255, cv::THRESH_BINARY_INV);
-        cv::Mat fgMask;
-        _bgSubtractor->apply(_depthMask, fgMask, 0.00001);
-        cv::morphologyEx(fgMask, fgMask, cv::MORPH_ERODE, _erodeElement);
-        cv::morphologyEx(fgMask, fgMask, cv::MORPH_DILATE, _dilateElement);
-        fgMask = 255 - fgMask;
-        unknownMask += fgMask;
-        _depthMask = _depthMask + unknownMask;
+        _depthMap = _depthMask;
         
         cv::morphologyEx(_depthMask, _depthMask, cv::MORPH_OPEN, _closeElement);
     }

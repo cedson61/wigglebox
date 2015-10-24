@@ -44,8 +44,8 @@ WiggleBox::WiggleBox(int argc, char** argv)
 {
     parseArguments(argc, argv);
 
-    // Load camera
     _camera = unique_ptr<RgbdCamera>(new RgbdCamera());
+    _wiggler = unique_ptr<Wiggler>(new Wiggler());
 }
 
 /*************/
@@ -56,6 +56,9 @@ WiggleBox::~WiggleBox()
 /*************/
 void WiggleBox::run()
 {
+    float wiggleFactor = 0.2f;
+    float wiggleStep = 0.1f;
+
     while(_state.run)
     {
         auto frameBegin = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
@@ -64,14 +67,31 @@ void WiggleBox::run()
         {
             _camera->grab();
 
-            cv::Mat depthMask = _camera->retrieveDepthMask();
+            cv::Mat depthMap = _camera->retrieveDisparity();
 
             auto rgbFrame = _camera->retrieveRGB();
-            cv::imshow("img", rgbFrame);
+            if (rgbFrame.rows > 0 && rgbFrame.cols > 0 && depthMap.cols > 0 && depthMap.rows > 0)
+            {
+                //cv::imshow("image", rgbFrame);
+                //cv::imshow("depth", depthMap);
+
+                _wiggler->setInputs(rgbFrame, depthMap);            
+
+
+                if (wiggleFactor >= 0.2f)
+                    wiggleStep = -0.05f;
+                else if (wiggleFactor <= -0.2f)
+                    wiggleStep = 0.05f;
+                wiggleFactor += wiggleStep;
+                _wiggler->setWiggleFactor(wiggleFactor);
+                _wiggler->setWiggleDist(48.f);
+
+                auto wiggledFrame = _wiggler->doWiggle();
+                cv::imshow("wiggled", wiggledFrame);
+            }
         }
 
         // Handle keyboard
-        // TODO: more precise loop timing
         auto frameEnd = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
         long frameDuration = 33; // 33ms per frame, so 30fps
         auto sleepTime = std::max(1l, frameDuration - ((long)frameEnd - (long)frameBegin));

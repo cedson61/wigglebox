@@ -2,6 +2,7 @@ bin_PROGRAMS = wiggleengine
 
 wiggleengine_SOURCES = \
 	wigglebox.cpp \
+	wiggler.cpp \
 	rgbdCamera.cpp
 
 wiggleengine_CXXFLAGS = \
