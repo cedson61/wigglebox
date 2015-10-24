@@ -104,7 +104,7 @@ void WiggleBox::run()
                         _wiggler->setWiggleDist(48.f * 32.f);
 
                         auto wiggledFrame = _wiggler->doWiggle();
-                        wiggledFrames.push_back(wiggledFrame);
+                        wiggledFrames.push_back(cv::Mat(wiggledFrame, cv::Rect(0, 32, 640, 480 - 32)));
                     }
                     _state.grabWiggle = false;
                 }
@@ -131,9 +131,9 @@ void WiggleBox::processKeyEvent(short key)
     default:
         //cout << "Pressed key: " << key << endl;
         break;
-    case 27: // Escape
-        _state.run = false;
-        break;
+    //case 27: // Escape
+    //    _state.run = false;
+    //    break;
     case 32: // Space
         _state.grabWiggle = true;
         break;
