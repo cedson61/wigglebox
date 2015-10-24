@@ -42,6 +42,8 @@ class WiggleBox
         struct State
         {
             bool run {true};
+            float wiggleRange {0.004f};
+            float wiggleStep {0.001f};
         } _state;
 
         std::unique_ptr<RgbdCamera> _camera;

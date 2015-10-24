@@ -56,8 +56,8 @@ WiggleBox::~WiggleBox()
 /*************/
 void WiggleBox::run()
 {
-    float wiggleFactor = 0.2f;
-    float wiggleStep = 0.1f;
+    float wiggleFactor = _state.wiggleRange;
+    float wiggleStep = 0.f;
 
     while(_state.run)
     {
@@ -67,9 +67,9 @@ void WiggleBox::run()
         {
             _camera->grab();
 
-            cv::Mat depthMap = _camera->retrieveDisparity();
-
+            auto depthMap = _camera->retrieveDisparity();
             auto rgbFrame = _camera->retrieveRGB();
+
             if (rgbFrame.rows > 0 && rgbFrame.cols > 0 && depthMap.cols > 0 && depthMap.rows > 0)
             {
                 //cv::imshow("image", rgbFrame);
@@ -78,13 +78,14 @@ void WiggleBox::run()
                 _wiggler->setInputs(rgbFrame, depthMap);            
 
 
-                if (wiggleFactor >= 0.2f)
-                    wiggleStep = -0.05f;
-                else if (wiggleFactor <= -0.2f)
-                    wiggleStep = 0.05f;
+                if (wiggleFactor >= _state.wiggleRange)
+                    wiggleStep = -1.f * _state.wiggleStep;
+                else if (wiggleFactor <= -_state.wiggleRange)
+                    wiggleStep = _state.wiggleStep;
                 wiggleFactor += wiggleStep;
+
                 _wiggler->setWiggleFactor(wiggleFactor);
-                _wiggler->setWiggleDist(48.f);
+                _wiggler->setWiggleDist(48.f * 32.f);
 
                 auto wiggledFrame = _wiggler->doWiggle();
                 cv::imshow("wiggled", wiggledFrame);

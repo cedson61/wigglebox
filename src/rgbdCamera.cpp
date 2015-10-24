@@ -49,9 +49,9 @@ bool RgbdCamera::grab()
             _depthMask = cv::Mat(_depthMap.size(), CV_8U);
 
         _depthMap.convertTo(_depthMask, CV_8U, 1.0 / 32.0);
-        _depthMap = _depthMask;
+        //_depthMap = _depthMask;
         
-        cv::morphologyEx(_depthMask, _depthMask, cv::MORPH_OPEN, _closeElement);
+        //cv::morphologyEx(_depthMask, _depthMask, cv::MORPH_OPEN, _closeElement);
     }
     
     return true;

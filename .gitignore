@@ -1,6 +1,7 @@
 *.swp
 *.in
 *.m4
+*.o
 aclocal.m4
 autom4te.cache/
 compile
