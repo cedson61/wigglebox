@@ -44,6 +44,11 @@ WiggleBox::WiggleBox(int argc, char** argv)
 {
     parseArguments(argc, argv);
 
+    _httpServer = unique_ptr<HttpServer>(new HttpServer("127.0.0.1", "9090"));
+    _httpServerThread = thread([&]() {
+        _httpServer->run();
+    });
+
     _camera = unique_ptr<RgbdCamera>(new RgbdCamera());
     _wiggler = unique_ptr<Wiggler>(new Wiggler());
 }
@@ -92,7 +97,7 @@ void WiggleBox::run()
                     float wiggleStep = _state.wiggleStep;
                     int steps = (_state.wiggleRange / _state.wiggleStep) * 4 + 1;
 
-                    for (auto i = 0; i < steps; ++i)
+                    for (auto i = 1; i < steps; ++i)
                     {
                         if (wiggleFactor >= _state.wiggleRange)
                             wiggleStep = -1.f * _state.wiggleStep;
@@ -106,8 +111,35 @@ void WiggleBox::run()
                         auto wiggledFrame = _wiggler->doWiggle();
                         wiggledFrames.push_back(cv::Mat(wiggledFrame, cv::Rect(0, 32, 640, 480 - 32)));
                     }
+
+                    convertToGif(wiggledFrames);
+
                     _state.grabWiggle = false;
                 }
+            }
+        }
+
+        // Handle HTTP requests
+        auto requestHandler = _httpServer->getRequestHandler();
+        pair<RequestHandler::Command, RequestHandler::ReturnFunction> message;
+        while ((message = requestHandler->getNextCommand()).first.command != RequestHandler::CommandId::nop)
+        {
+            auto command = message.first;
+            auto replyFunction = message.second;
+
+            if (command.command == RequestHandler::CommandId::quit)
+            {
+                _state.run = false;
+                message.second(true, {"Default reply"});
+            }
+            else if (command.command == RequestHandler::CommandId::capture)
+            {
+                _state.grabWiggle = true;
+                message.second(true, {"Capturing"});
+            }
+            else if (command.command == RequestHandler::CommandId::getCaptureName)
+            {
+                message.second(true, {_basename + ".gif"});
             }
         }
 
@@ -124,6 +156,24 @@ void WiggleBox::run()
 }
 
 /*************/
+void WiggleBox::convertToGif(const vector<cv::Mat>& frames)
+{
+    string basename = _basename;
+    int index = 0;
+    for (auto& frame : frames)
+    {
+        cv::imwrite("/tmp/" + basename + to_string(index) + ".jpg", frame);
+        index++;
+    }
+
+    string cmd = "convertToGif";
+    char* argv[] = {(char*)"convertToGif", (char*)basename.c_str(), nullptr};
+
+    int pid;
+    posix_spawn(&pid, cmd.c_str(), nullptr, nullptr, argv, nullptr);
+}
+
+/*************/
 void WiggleBox::processKeyEvent(short key)
 {
     switch (key)
@@ -131,9 +181,9 @@ void WiggleBox::processKeyEvent(short key)
     default:
         //cout << "Pressed key: " << key << endl;
         break;
-    //case 27: // Escape
-    //    _state.run = false;
-    //    break;
+    case 27: // Escape
+        _state.run = false;
+        break;
     case 32: // Space
         _state.grabWiggle = true;
         break;

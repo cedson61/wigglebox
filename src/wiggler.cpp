@@ -50,10 +50,10 @@ cv::Mat Wiggler::doWiggle()
                 }
             }
 
+
     // Filling the holes
     for (int32_t y = 0; y < _rgb.rows; ++y)
     {
-        bool isHole {false};
         float previousWiggle = 0.f;
         float nextWiggle = 0.f;
 
@@ -65,7 +65,6 @@ cv::Mat Wiggler::doWiggle()
             if (value != 32767)
             {
                 previousWiggle = value;
-                isHole = true;
                 continue;
             }
             else
@@ -82,6 +81,13 @@ cv::Mat Wiggler::doWiggle()
                     holeLength++;
                 }
             }
+
+            // If there is no filled point before the hole (i.e the hole is on the left border)
+            if (x == 0)
+                previousWiggle = nextWiggle;
+            // Same if there is no filled point after the hole
+            if (x + holeLength == _rgb.cols)
+                nextWiggle = previousWiggle;
 
             for (int32_t xx = x; xx < x + holeLength; ++xx)
             {

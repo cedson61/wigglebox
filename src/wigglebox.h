@@ -26,6 +26,7 @@
 
 #include <opencv2/opencv.hpp>
 
+#include "./httpServer.h"
 #include "./rgbdCamera.h"
 #include "./wiggler.h"
 
@@ -39,17 +40,21 @@ class WiggleBox
         void run();
 
     private:
+        std::string _basename {"wiggleresult"};
         struct State
         {
             bool run {true};
             bool grabWiggle {false};
             float wiggleRange {0.004f};
-            float wiggleStep {0.001f};
+            float wiggleStep {0.002f};
         } _state;
 
         std::unique_ptr<RgbdCamera> _camera;
         std::unique_ptr<Wiggler> _wiggler;
+        std::unique_ptr<HttpServer> _httpServer;
+        std::thread _httpServerThread;
 
+        void convertToGif(const std::vector<cv::Mat>& frames);
         void parseArguments(int argc, char** argv);
         void processKeyEvent(short key);
 };

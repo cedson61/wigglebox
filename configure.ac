@@ -33,6 +33,11 @@ if test "x${have_freenect}" = "xfalse" ; then
     AC_MSG_ERROR([Missing libfreenect])
 fi
 
+# Boost:
+BOOST_REQUIRE([1.50])
+BOOST_ASIO
+BOOST_SYSTEM
+
 AC_CONFIG_FILES([
 	Makefile
 	src/Makefile
